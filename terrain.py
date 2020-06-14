@@ -78,9 +78,9 @@ class Terrain:
     def display(self, surface, height, width):
         self.displaySky(surface)
         for k in range(len(self.funcs)-1):
-            pts=[(x, self.val(k, x/dpu)*dpu-0.5) for x in range(width)]
+            pts=[(x, height-self.val(k, x/dpu)*dpu-0.5) for x in range(width)]
             pygame.draw.aalines(screen, self.colors[k], False, pts)
-            pts=[(x, round(self.val(k, x/dpu)*dpu)) for x in range(width)]+[(x, round(self.val(k+1, x/dpu)*dpu)+2) for x in range(width-1, -1, -1)]
+            pts=[(x, height-round(self.val(k, x/dpu)*dpu)) for x in range(width)]+[(x, height-round(self.val(k+1, x/dpu)*dpu)+2) for x in range(width-1, -1, -1)]
             pygame.gfxdraw.filled_polygon(screen, pts, self.colors[k])
 
 
@@ -90,21 +90,20 @@ def genBasic():
     ter=Terrain()
     ter.skycolor=(32,128,255)
 
-    #ter.add(TrigFunc(0.01, 0.02, 60, 50, 1, 0, 500), (10, 128, 0))
     f1=random.random()*0.005+0.005
     f2=f1+random.random()*0.005+0.005
-    ter.add(TrigFunc(f1, f2, random.random()*30+30, random.random()*30+30, random.random()*10, random.random()*10, 500), (10, 128, 0))
-    ter.add(TrigFunc(0, 0, 0, 0, 0, 0, 10), (10, 60, 5))
+    ter.add(TrigFunc(f1, f2, random.random()*30+30, random.random()*30+30, random.random()*10, random.random()*10, 2*height/5), (10, 128, 0))
+    ter.add(TrigFunc(0, 0, 0, 0, 0, 0, -10), (10, 60, 5))
 
     n=1
 
-    while ((ter.cst(n)-ter.amp(n))*dpu < height):
+    while ((ter.cst(n)+ter.amp(n))*dpu > 0):
         v=random.random()*0.25+0.15
         s=random.random()*0.25+0.1
         h=random.random()*0.25+0.5
         color=(255*v, 128*(s+h)*v, 64*s*v)
 
-        ter.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, random.random()*10+20), color, 0.8)
+        ter.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+20)), color, 0.8)
         n+=1
 
     ter.display(screen, height, width)
