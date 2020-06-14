@@ -6,7 +6,7 @@ import time
 
 # Terrain generator
 # by Victor MIQUEL
-# github.com/dido11/Balistank
+# github.com/dido11/
 
 pygame.display.init()
 size = width, height = 1280, 720
@@ -78,13 +78,9 @@ class Terrain:
     def display(self, surface, height, width):
         self.displaySky(surface)
         for k in range(len(self.funcs)-1):
-            print(k, time.time())
             pts=[(x, self.val(k, x/dpu)*dpu-0.5) for x in range(width)]
-            print("-", time.time())
             pygame.draw.aalines(screen, self.colors[k], False, pts)
-            print("#", time.time())
             pts=[(x, round(self.val(k, x/dpu)*dpu)) for x in range(width)]+[(x, round(self.val(k+1, x/dpu)*dpu)+2) for x in range(width-1, -1, -1)]
-            print("@", time.time())
             pygame.gfxdraw.filled_polygon(screen, pts, self.colors[k])
 
 
@@ -113,7 +109,9 @@ def genBasic():
 
     ter.display(screen, height, width)
 
+print(time.time())
 genBasic()
+print(time.time())
 
 while True:
     for event in pygame.event.get():
