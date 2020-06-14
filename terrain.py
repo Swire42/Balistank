@@ -61,6 +61,21 @@ class Terrain:
             amort*=self.amorts[k]
         return ret
 
+    def genPoints(self, xvalues):
+        yvalues=[[0 for k in range(len(xvalues))] for j in range(len(self.funcs))]
+        prev=[0 for k in range(len(xvalues))]
+        cst=0
+        der=[0 for k in range(len(xvalues))]
+
+        for k in range(len(self.funcs)):
+            for xi in range(len(xvalues)):
+                prev[xi]=(prev[xi]-cst)*self.amorts[k]+cst + self.funcs[k].val(xvalues[xi])*math.sqrt((der[xi])**2 + 1)
+                der[xi]*=self.amorts[k]
+                yvalues[k][xi]=prev[xi]
+            cst+=self.funcs[k].cst
+
+        return yvalues
+
     def cst(self, n):
         return sum([f.cst for f in self.funcs[:n]])
 
@@ -77,13 +92,12 @@ class Terrain:
 
     def display(self, surface, height, width):
         self.displaySky(surface)
+        allpts=self.genPoints([x/dpu for x in range(width)])
         for k in range(len(self.funcs)-1):
-            pts=[(x, height-self.val(k, x/dpu)*dpu-0.5) for x in range(width)]
+            pts=[(x, height-allpts[k][x]*dpu-0.5) for x in range(width)]
             pygame.draw.aalines(screen, self.colors[k], False, pts)
-            pts=[(x, height-round(self.val(k, x/dpu)*dpu)) for x in range(width)]+[(x, height-round(self.val(k+1, x/dpu)*dpu)+2) for x in range(width-1, -1, -1)]
+            pts=[(x, height-round(allpts[k][x]*dpu)) for x in range(width)]+[(x, height-round(allpts[k+1][x]*dpu)+2) for x in range(width-1, -1, -1)]
             pygame.gfxdraw.filled_polygon(screen, pts, self.colors[k])
-
-
 
 
 def genBasic():
@@ -103,7 +117,9 @@ def genBasic():
         h=random.random()*0.25+0.5
         color=(255*v, 128*(s+h)*v, 64*s*v)
 
-        ter.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+20)), color, 0.8)
+        minH=0.2*ter.amp(n)+10
+
+        ter.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+minH)), color, 0.8)
         n+=1
 
     ter.display(screen, height, width)
