@@ -110,7 +110,7 @@ def genTerrain(amp):
 
     f1=0.007
     f2=0.011
-    terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*10, random.random()*10, 2*height/8), (10, 128, 0))
+    terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*10, random.random()*10, height/4/dpu), (10, 128, 0))
     terrain.add(TrigFunc(0, 0, 0, 0, 0, 0, -10), (10, 60, 5))
 
     n=1
