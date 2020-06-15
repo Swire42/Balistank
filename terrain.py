@@ -9,7 +9,7 @@ import time
 # github.com/dido11/
 
 pygame.display.init()
-size = width, height = 1280, 720
+size = width, height = 1920, 1080
 screen = pygame.display.set_mode(size)
 
 dpu=1 # dot per unit
@@ -95,37 +95,41 @@ class Terrain:
         allpts=self.genPoints([x/dpu for x in range(width)])
         for k in range(len(self.funcs)-1):
             pts=[(x, height-allpts[k][x]*dpu-0.5) for x in range(width)]
-            pygame.draw.aalines(screen, self.colors[k], False, pts)
+            pygame.draw.aalines(surface, self.colors[k], False, pts)
             pts=[(x, height-round(allpts[k][x]*dpu)) for x in range(width)]+[(x, height-round(allpts[k+1][x]*dpu)+2) for x in range(width-1, -1, -1)]
-            pygame.gfxdraw.filled_polygon(screen, pts, self.colors[k])
+            pygame.gfxdraw.filled_polygon(surface, pts, self.colors[k])
 
+background=pygame.Surface(size)
+terrain=Terrain()
 
-def genBasic():
-    ter=Terrain()
-    ter.skycolor=(32,128,255)
+def genTerrain(amp):
+    global terrain, background
+    terrain=Terrain()
+    background=pygame.Surface(size)
+    terrain.skycolor=(32,128,255)
 
-    f1=random.random()*0.005+0.005
-    f2=f1+random.random()*0.005+0.005
-    ter.add(TrigFunc(f1, f2, random.random()*30+30, random.random()*30+30, random.random()*10, random.random()*10, 2*height/5), (10, 128, 0))
-    ter.add(TrigFunc(0, 0, 0, 0, 0, 0, -10), (10, 60, 5))
+    f1=0.007
+    f2=0.011
+    terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*10, random.random()*10, 2*height/8), (10, 128, 0))
+    terrain.add(TrigFunc(0, 0, 0, 0, 0, 0, -10), (10, 60, 5))
 
     n=1
 
-    while ((ter.cst(n)+ter.amp(n))*dpu > 0):
+    while ((terrain.cst(n)+terrain.amp(n))*dpu > 0):
         v=random.random()*0.25+0.15
         s=random.random()*0.25+0.1
         h=random.random()*0.25+0.5
         color=(255*v, 128*(s+h)*v, 64*s*v)
 
-        minH=0.2*ter.amp(n)+10
+        minH=0.2*terrain.amp(n)+10
 
-        ter.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+minH)), color, 0.8)
+        terrain.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+minH)), color, 0.8)
         n+=1
 
-    ter.display(screen, height, width)
+    terrain.display(background, height, width)
 
 print(time.time())
-genBasic()
+genTerrain(30)
 print(time.time())
 
 while True:
@@ -133,4 +137,5 @@ while True:
         if event.type == pygame.QUIT:
             pygame.display.quit()
             exit()
+    screen.blit(background, (0,0))
     pygame.display.flip()
