@@ -4,10 +4,6 @@ import math
 import random
 import time
 
-# Terrain generator
-# by Victor MIQUEL
-# github.com/dido11/
-
 pygame.display.init()
 size = width, height = 1920, 1080
 screen = pygame.display.set_mode(size)
