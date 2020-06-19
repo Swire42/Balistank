@@ -8,7 +8,7 @@ import time
 # by Victor Miquel
 # github.com/dido11
 
-# usage : genTerrain(Amplitude), creates a Background surface, a Terrain and blit the terrain on the surface. Amplitude is used to change the terrain shape.
+# usage : genTerrain(amplitude, baseFrequency, layerHeight, biome), creates a Background surface, a Terrain and blit the terrain on the surface.
 
 size = width, height = 1920, 1080
 dpu=1 # dot per unit
@@ -101,28 +101,35 @@ class Terrain:
 background=pygame.Surface(size)
 terrain=Terrain()
 
-def genTerrain(amp):
+def genTerrain(amp, freq, layerSize, biome="grass"):
+    assert biome in ["grass"], "unknow biome "+biome
+
     global terrain, background
     terrain=Terrain()
     background=pygame.Surface(size)
-    terrain.skycolor=(32,128,255)
+    if biome=="grass":
+        terrain.skycolor=(32,128,255)
 
-    f1=0.007
-    f2=0.011
-    terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*10, random.random()*10, height/4/dpu), (10, 128, 0))
-    terrain.add(TrigFunc(0, 0, 0, 0, 0, 0, -10), (10, 60, 5))
+    f1=freq*0.7
+    f2=freq*1.1
+    if biome=="grass":
+        color1=(10, 128, 0)
+        color2=(10, 60, 5)
+    terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*(2*math.pi), random.random()*(2*math.pi), height/4/dpu), color1)
+    terrain.add(TrigFunc(0, 0, 0, 0, 0, 0, -layerSize), color2)
 
     n=1
 
     while ((terrain.cst(n)+terrain.amp(n))*dpu > 0):
-        v=random.random()*0.25+0.15
-        s=random.random()*0.25+0.1
-        h=random.random()*0.25+0.5
-        color=(255*v, 128*(s+h)*v, 64*s*v)
+        if biome=="grass":
+            v=random.random()*0.25+0.15
+            s=random.random()*0.25+0.1
+            h=random.random()*0.25+0.5
+            color=(255*v, 128*(s+h)*v, 64*s*v)
 
-        minH=0.2*terrain.amp(n)+10
+        minH=0.2*terrain.amp(n)+layerSize
 
-        terrain.add(TrigFunc(random.random()*0.01+0.01, random.random()*0.005+0.005, random.random()*10, random.random()*5, random.random()*10, random.random()*10, -(random.random()*10+minH)), color, 0.8)
+        terrain.add(TrigFunc(random.random()*freq+freq, random.random()*freq*0.5+freq*0.5, random.random()*10, random.random()*5, random.random()*(2*math.pi), random.random()*(2*math.pi), -(random.random()*layerSize+minH)), color, 0.8)
         n+=1
 
     terrain.display(background, height, width)
