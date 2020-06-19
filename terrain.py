@@ -4,6 +4,13 @@ import math
 import random
 import time
 
+# Terrain generator
+# by Victor Miquel
+# github.com/dido11
+
+# usage : genTerrain(Amplitude), creates a Background surface, a Terrain and blit the terrain on the surface. Amplitude is used to change the terrain shape.
+
+
 pygame.display.init()
 size = width, height = 1920, 1080
 screen = pygame.display.set_mode(size)
