@@ -10,11 +10,7 @@ import time
 
 # usage : genTerrain(Amplitude), creates a Background surface, a Terrain and blit the terrain on the surface. Amplitude is used to change the terrain shape.
 
-
-pygame.display.init()
 size = width, height = 1920, 1080
-screen = pygame.display.set_mode(size)
-
 dpu=1 # dot per unit
 
 class TrigFunc:
@@ -131,14 +127,3 @@ def genTerrain(amp):
 
     terrain.display(background, height, width)
 
-print(time.time())
-genTerrain(30)
-print(time.time())
-
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.display.quit()
-            exit()
-    screen.blit(background, (0,0))
-    pygame.display.flip()
