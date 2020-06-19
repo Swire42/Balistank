@@ -5,7 +5,9 @@ pygame.display.init()
 size = width, height = 1920, 1080
 screen = pygame.display.set_mode(size)
 
-terrain.genTerrain(30, 0.01, 10)
+terrain.dpu=10
+
+terrain.genTerrain(3, 0.1, 1)
 
 while True:
     for event in pygame.event.get():

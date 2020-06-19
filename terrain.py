@@ -129,7 +129,7 @@ def genTerrain(amp, freq, layerSize, biome="grass"):
 
         minH=0.2*terrain.amp(n)+layerSize
 
-        terrain.add(TrigFunc(random.random()*freq+freq, random.random()*freq*0.5+freq*0.5, random.random()*10, random.random()*5, random.random()*(2*math.pi), random.random()*(2*math.pi), -(random.random()*layerSize+minH)), color, 0.8)
+        terrain.add(TrigFunc(random.random()*freq+freq, random.random()*freq*0.5+freq*0.5, random.random()*layerSize, random.random()*layerSize*0.5, random.random()*(2*math.pi), random.random()*(2*math.pi), -(random.random()*layerSize+minH)), color, 0.8)
         n+=1
 
     terrain.display(background, height, width)
