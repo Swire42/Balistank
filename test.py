@@ -7,7 +7,7 @@ screen = pygame.display.set_mode(size)
 
 terrain.dpu=10
 
-terrain.genTerrain(3, 0.1, 1)
+terrain.genTerrain(3, 0.1, 1, "snow")
 
 while True:
     for event in pygame.event.get():

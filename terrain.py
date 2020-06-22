@@ -102,19 +102,24 @@ background=pygame.Surface(size)
 terrain=Terrain()
 
 def genTerrain(amp, freq, layerSize, biome="grass"):
-    assert biome in ["grass"], "unknow biome "+biome
+    assert biome in ["grass", "snow", "desert"], "unknow biome "+biome
 
     global terrain, background
     terrain=Terrain()
     background=pygame.Surface(size)
-    if biome=="grass":
-        terrain.skycolor=(32,128,255)
+    terrain.skycolor=(32,128,255)
 
     f1=freq*0.7
     f2=freq*1.1
     if biome=="grass":
         color1=(10, 128, 0)
         color2=(10, 60, 5)
+    elif biome=="snow":
+        color1=(255, 255, 255)
+        color2=(225, 225, 225)
+    elif biome=="desert":
+        color1=(255, 245, 0)
+        color2=(215, 205, 0)
     terrain.add(TrigFunc(f1, f2, random.random()*amp+amp, random.random()*amp+amp, random.random()*(2*math.pi), random.random()*(2*math.pi), height/4/dpu), color1)
     terrain.add(TrigFunc(0, 0, 0, 0, 0, 0, -layerSize), color2)
 
@@ -126,6 +131,17 @@ def genTerrain(amp, freq, layerSize, biome="grass"):
             s=random.random()*0.25+0.1
             h=random.random()*0.25+0.5
             color=(255*v, 128*(s+h)*v, 64*s*v)
+
+        elif biome=="snow":
+            v=random.random()*0.25+0.15
+            s=random.random()*0.15+0.6
+            h=random.random()*0.25+0.5
+            color=(255*v, 128*(s+h)*v, 128*s*v)
+
+        elif biome=="desert":
+            v=random.random()*0.15+0.7
+            h=random.random()*0.25+0.05
+            color=(255*v, 255*(1-h)*v, 0)
 
         minH=0.2*terrain.amp(n)+layerSize
 
