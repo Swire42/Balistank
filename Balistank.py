@@ -54,7 +54,7 @@ class Tank:
     def __init__(self,id,x):
         self.id = id
         entity[self.id] = (self)
-        self.sprite = [pygame.image.load(os.path.join(path,"img\\cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img\\Player " + str(id) + ".png")).convert_alpha()]
+        self.sprite = [pygame.image.load(os.path.join(path,"img","cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img","Player " + str(id) + ".png")).convert_alpha()]
         self.cannon_width,self.cannon_height= 0.5,3
         self.width, self.height = 4,2
         self.sprite[0] = pygame.transform.scale(self.sprite[0],(int(self.cannon_width*dpu),int(self.cannon_height*dpu)))
@@ -395,7 +395,7 @@ def resize(newsize):
     terrain.size = terrain.width, terrain.height = size
     terrain.terrain.display(terrain.background, terrain.height, terrain.width)
     for e in entity:
-        e.sprite = [pygame.image.load(os.path.join(path,"img\\cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img\\Player " + str(e.id) + ".png")).convert_alpha()]
+        e.sprite = [pygame.image.load(os.path.join(path,"img","cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img","Player " + str(e.id) + ".png")).convert_alpha()]
         e.sprite[0] = pygame.transform.scale(e.sprite[0],(int(e.cannon_width*dpu),int(e.cannon_height*dpu)))
         e.sprite[1] = pygame.transform.scale(e.sprite[1],(int(e.width*dpu),int(e.height*dpu)))
     menu_escape = m_width, m_height = [32*dpu,48*dpu]

@@ -12,7 +12,7 @@ def menu(screen, myfont, size, dpu):
     Walls = False
     terrain = (0, 0, 1,"grass")
     path = pathlib.Path(__file__).parent.absolute()
-    background = pygame.image.load(os.path.join(path,"img\\menu_background.png")).convert()
+    background = pygame.image.load(os.path.join(path,"img","menu_background.png")).convert()
     while Flag:
         Flag, menu, Walls, terrain, nb_players = event(Flag, menu, Walls, terrain, nb_players, myfont,dpu)
         display(screen,background, menu, dpu, myfont, width, height)
