@@ -7,7 +7,7 @@ Make sure to have pygame installed.\
 The game works on Windows, and should work on Linux too.\
 Press Esc to enter the option menu.\
 Tip: use the wall when playing with 2 players on Desert and Extreme Hills.
-
+Tip: Faster bullets means more damage, hold space to adjust power.
 
 
 ## Credits
