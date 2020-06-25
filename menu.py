@@ -1,22 +1,28 @@
 import pygame
 import math
 import os
-import pathlib
 
 
 def menu(screen, myfont, size, dpu):
     Flag = True
+    Quit = False
     width, height = size
     nb_players = 2
     menu = genMenu(width, height, myfont, dpu, nb_players)
-    Walls = False
+    Walls = True
     terrain = (0, 0, 1,"grass")
-    path = pathlib.Path(__file__).parent.absolute()
-    background = pygame.image.load(os.path.join(path,"img","menu_background.png")).convert()
+    path = os.path.abspath("")
+    background = pygame.image.load(os.path.join(path,"img\\menu_background.png")).convert()
+    background = pygame.transform.scale(background,size)
+    pygame.mixer.init()
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.load(os.path.join(path,"msc\\balistank.mp3"))
+    pygame.mixer.music.play(loops=-1)
     while Flag:
-        Flag, menu, Walls, terrain, nb_players = event(Flag, menu, Walls, terrain, nb_players, myfont,dpu)
+        Flag, Quit, menu, Walls, terrain, nb_players = event(Flag, Quit, menu, Walls, terrain, nb_players, myfont,dpu)
         display(screen,background, menu, dpu, myfont, width, height)
-    return(nb_players, Walls, terrain)
+    pygame.mixer.quit()
+    return(Quit,nb_players, Walls, terrain)
 
 def isInRect(pos,rect):
     x,y = pos
@@ -25,18 +31,16 @@ def isInRect(pos,rect):
     else:
         return(False)
 
-def event(Flag, menu, Walls, terrain, nb_players, myfont, dpu):
+def event(Flag, Quit, menu, Walls, terrain, nb_players, myfont, dpu):
     flat = (0, 0, 1,"grass")
     plains = (2, 0.2, 1,"desert")
     hills = (4, 0.2, 1,"snow")
     ev = pygame.event.get()
     for event in ev:
         if event.type == pygame.QUIT:
-            Flag= False
-            pygame.display.quit()
+            Flag, Quit= False,True
     if (pygame.key.get_pressed()[pygame.K_LALT] and pygame.key.get_pressed()[pygame.K_F4]):
-        Flag = False
-        pygame.display.quit()
+        Flag, Quit = False,True
     if isInRect(pygame.mouse.get_pos(),menu[0][1]):
         for event in ev:
             if event.type == pygame.MOUSEBUTTONUP:
@@ -90,7 +94,7 @@ def event(Flag, menu, Walls, terrain, nb_players, myfont, dpu):
         for event in ev:
             if event.type == pygame.MOUSEBUTTONUP and nb_players > 2:
                 nb_players -= 1
-                menu[6][2]=pygame.transform.scale(myfont.render(str(nb_players),True,(0,0,0)),(int(6*dpu),int(6*dpu)))
+                menu[6][2] = pygame.transform.scale(myfont.render(str(nb_players),True,(0,0,0)),(int(6*dpu),int(6*dpu)))
         if pygame.mouse.get_pressed()[0]:
             menu[4][0] = (120,120,120)
         else:
@@ -112,6 +116,14 @@ def event(Flag, menu, Walls, terrain, nb_players, myfont, dpu):
             menu[7][0] = (120,120,120)
         else:
             menu[7][0] = (130,130,130)
+    elif isInRect(pygame.mouse.get_pos(),menu[8][1]):
+        for event in ev:
+            if event.type == pygame.MOUSEBUTTONUP:
+                Flag, Quit = False,True
+        if pygame.mouse.get_pressed()[0]:
+            menu[8][0] = (240,0,0)
+        else:
+            menu[8][0] = (250,0,0)
     else:
         menu[0][0] = (140,140,140)
         menu[1][0] = (140,140,140)
@@ -123,13 +135,14 @@ def event(Flag, menu, Walls, terrain, nb_players, myfont, dpu):
         menu[4][0] = (140,140,140)
         menu[5][0] = (140,140,140)
         menu[7][0] = (140,140,140)
+        menu[8][0] = (255,0,0)
     if terrain == flat:
         menu[0][0] = (0,255,0)
     elif terrain == plains:
         menu[1][0] = (0,255,0)
     elif terrain == hills:
         menu[2][0] = (0,255,0)
-    return(Flag, menu, Walls, terrain, nb_players)
+    return(Flag,Quit, menu, Walls, terrain, nb_players)
 
 def display(screen,background,menu,dpu,myfont,width,height):
     screen.fill((0,0,0))
@@ -145,8 +158,8 @@ def genMenu(width, height, myfont, dpu, nb_players):
             [(140,140,140),[6*width/10, height/2 - 3*dpu,6*dpu,6*dpu], pygame.transform.scale(myfont.render("-",True,(255,255,255)),(int(6*dpu),int(6*dpu)))],
             [(140,140,140),[6*width/10 + 12*dpu, height/2 - 3*dpu,6*dpu,6*dpu], pygame.transform.scale(myfont.render("+",True,(255,255,255)),(int(6*dpu),int(6*dpu)))],
             [(255,255,255),[6*width/10 + 6*dpu, height/2 - 3*dpu,6*dpu,6*dpu], pygame.transform.scale(myfont.render(str(nb_players),True,(0,0,0)),(int(6*dpu),int(6*dpu)))],
-            [(140,140,140),[width/2-width/6, height - height/4,width/3,height/4], pygame.transform.scale(myfont.render("Play!",True,(255,255,255)),(int(width/3),int(height/4)))]]
-
+            [(140,140,140),[width/2-width/6, height - height/4,width/3,height/4], pygame.transform.scale(myfont.render("Play!",True,(255,255,255)),(int(width/3),int(height/4)))],
+            [(250,0,0),[width-width/32,0,width/32,width/32], pygame.transform.scale(myfont.render("X",True,(255,255,255)),(int(width/32),int(width/32)))]]
     return(menu)
 
 def blitMenu(screen,menu,dpu,myfont,width,height):

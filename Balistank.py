@@ -4,26 +4,37 @@ import math
 import random
 import os
 import time
-import pathlib
 import terrain
 import option
 import menu
 from scipy.integrate import*
 
+###Lire le README (peut s'ouvrir avec le bloc note)###
+
 ###Initialisation des variables utiles aux classes
 
+size = width, height = 1920,1080
 pygame.display.init()
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', 300)
-size = width, height = 1920,1080
-screen = pygame.display.set_mode(size,flags = pygame.FULLSCREEN)
-path = pathlib.Path(__file__).parent.absolute()
+try:
+    screen = pygame.display.set_mode(size,flags = pygame.FULLSCREEN)
+except:
+    size = width, height = 1280,720
+    screen = pygame.display.set_mode(size,flags = pygame.FULLSCREEN)
+path = os.path.abspath("")
 
 ###Génération du terrain
 
-dpu=12.5 #dot per unit
+dpu=12.5*width/1920 #dot per unit
 terrain.dpu = dpu
+terrain.size = terrain.width, terrain.height = size
+
 HP_img = pygame.transform.scale(myfont.render("HP",True,(255,255,255)),(int(width/32),int(height/32)))
+Esc_indic = pygame.transform.scale(myfont.render("Press Esc for Menu",True,(255,255,255)),(int(width/4),int(height/16)))
+
+
+
 
 ###Définition des classes
 
@@ -54,18 +65,18 @@ class Tank:
     def __init__(self,id,x):
         self.id = id
         entity[self.id] = (self)
-        self.sprite = [pygame.image.load(os.path.join(path,"img","cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img","Player " + str(id) + ".png")).convert_alpha()]
+        self.sprite = [pygame.image.load(os.path.join(path,"img\\cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img\\Player " + str(id) + ".png")).convert_alpha()]
         self.cannon_width,self.cannon_height= 0.5,3
         self.width, self.height = 4,2
         self.sprite[0] = pygame.transform.scale(self.sprite[0],(int(self.cannon_width*dpu),int(self.cannon_height*dpu)))
         self.sprite[1] = pygame.transform.scale(self.sprite[1],(int(self.width*dpu),int(self.height*dpu)))
         self.position=[x,terrain.terrain.val(0,x)]
-        self.speed = 15
-        self.HP = 100
+        self.speed = 10
+        self.HP = 150
         self.HPmax = float(self.HP)
         self.angle = float()
-        self.force, self.cannon_angle = 20,45
-        self.fuel = 10
+        self.force, self.cannon_angle = 21.5,45
+        self.fuel = max_fuel
         if self.id%2==1:
             self.cannon_angle += 90
             self.sprite[1] = pygame.transform.flip(self.sprite[1],True,False)
@@ -85,7 +96,7 @@ class Player:
 class Wall:
     def __init__(self,x):
         self.position = x,0
-        self.width, self.height = 2, height*2/(3*dpu)
+        self.width, self.height = 2, height/(2*dpu)
 
 ###Initialisation des variables
 
@@ -99,35 +110,55 @@ InGame = False
 menu_escape = m_width, m_height = [32*dpu,48*dpu]
 menu_escape=[[(150,150,150),[width/2 - m_width/2,height/2 - m_height/2,m_width,m_height]],
             [(140,140,140),[width/2 - 3*m_width/8 , height/2 - 3*m_height/8,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Options",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))],
-            [(140,140,140),[width/2 - 3*m_width/8 , height/2 + m_height/24,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Quit",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))]]
+            [(140,140,140),[width/2 - 3*m_width/8 , height/2 + m_height/24,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Menu",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))]]
 menu_opt = opt_width, opt_height = [144*dpu, 72*dpu]
 menu_opt = option.genMenu(menu_opt,width,height,myfont)
 
 def init():
-    global t, turn, players, bullet, entity, walls, nb_players, terrain, InGame, varpower
-    players = []
-    entity = []
-    walls = []
-    bullet = 0
-    nb_players, Walls, terrain_data = menu.menu(screen, myfont, size, dpu)
-    terrain.genTerrain(terrain_data[0],terrain_data[1],terrain_data[2],terrain_data[3])
+    global Flag, t, turn, players, bullet, entity, walls, nb_players, terrain, InGame, varpower, queue, musics, sounds, max_fuel
 
     def initplayer(i,x):
         players.append(Player(x))
 
-    entity = [0 for i in range(nb_players)]
-    x = 1/8
-    for i in range(nb_players):
-        initplayer(i,x*width/dpu)
-        x += ((-1)**i *(6-2*i))/8
-    if Walls:
-        for i in range(1,nb_players):
-            walls.append(Wall(width*i/(nb_players*dpu)))
-    turn = random.randint(0,nb_players-1)
-    t = time.perf_counter()
-    InGame = True
-    score = pygame.transform.scale(myfont.render("Score : "+str(players[i].score),True,(255,255,255)),(int(width/8),int(height/32)))
-    varpower = -1
+    players = []
+    walls = []
+    bullet = 0
+    max_fuel = 20
+    Flag, nb_players, Walls, terrain_data = menu.menu(screen, myfont, size, dpu)
+    Flag = not(Flag)
+    if Flag:
+        terrain.genTerrain(terrain_data[0],terrain_data[1],terrain_data[2],terrain_data[3])
+        nb_channels = 4
+        pygame.mixer.init(48000, -16, nb_channels, 1024)
+        for i in range(nb_channels):
+            pygame.mixer.Channel(i).set_volume(0.5)
+        entity = [0 for i in range(nb_players)]
+        x = 1/8
+        for i in range(nb_players):
+            initplayer(i,x*width/dpu)
+            x += ((-1)**i *(6-2*i))/8
+        if Walls:
+            for i in range(1,nb_players):
+                walls.append(Wall(width*i/(nb_players*dpu)))
+        turn = random.randint(0,nb_players-1)
+        t = time.perf_counter()
+        InGame = True
+        score = pygame.transform.scale(myfont.render("Score : "+str(players[i].score),True,(255,255,255)),(int(width/8),int(height/32)))
+        varpower = -1
+        musics = []
+        for i in os.scandir(path+"\\msc"):
+            if i.is_file() and i.name != "balistank.mp3":
+                musics.append(i.path)
+        random.shuffle(musics)
+        paths = [(i.path) for i in os.scandir(path+"\\sounds")]
+        paths.sort()
+        sounds = [pygame.mixer.Sound(i) for i in paths]
+        queue = 0
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.load(musics[queue])
+        pygame.mixer.music.play()
+
+
 
 def reinit():
     global Win
@@ -158,12 +189,21 @@ def regularInput(ev):
             varpower = 0
             cannon_height = players[turn].tank.cannon_height
             force = players[turn].tank.force
+        if event.type == pygame.KEYDOWN and (event.key == pygame.K_UP or event.key == pygame.K_w or event.key == pygame.K_DOWN or event.key == pygame.K_s or (event.key == pygame.K_SPACE and bullet == 0)) and not(pygame.mixer.Channel(0).get_busy())  :
+            pygame.mixer.Channel(0).play(sounds[0])
+        elif event.type == pygame.KEYUP and (event.key == pygame.K_UP or event.key == pygame.K_w or event.key == pygame.K_DOWN or event.key == pygame.K_s or event.key == pygame.K_SPACE) and not(pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_SPACE]):
+            pygame.mixer.Channel(0).stop()
+        if event.type == pygame.KEYDOWN and ((event.key == pygame.K_RIGHT or event.key == pygame.K_d or event.key == pygame.K_LEFT or event.key == pygame.K_q) and not(pygame.mixer.Channel(3).get_busy())) and players[turn].tank.fuel > 0:
+            pygame.mixer.Channel(3).play(sounds[3])
+        elif event.type == pygame.KEYUP and (event.key == pygame.K_RIGHT or event.key == pygame.K_q or event.key == pygame.K_LEFT or event.key == pygame.K_d) and not(pygame.key.get_pressed()[pygame.K_q] or pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d] or pygame.key.get_pressed()[pygame.K_LEFT]):
+            pygame.mixer.Channel(3).stop()
         if bullet == 0 and event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
             players[turn].tank.shooting()
             players[turn].tank.cannon_height = cannon_height
             players[turn].tank.sprite[0] = pygame.transform.scale(players[turn].tank.sprite[0],(int(players[turn].tank.cannon_width*dpu),int(players[turn].tank.cannon_height*dpu)))
             players[turn].tank.force = force
             varpower = -1
+            pygame.mixer.Channel(1).play(sounds[1])
     if ((pygame.key.get_pressed()[pygame.K_d]) or (pygame.key.get_pressed()[pygame.K_RIGHT])) and players[turn].tank.fuel > 0:
         distance = players[turn].tank.speed * np.cos(players[turn].tank.angle)*dt
         players[turn].tank.position[0] += distance
@@ -216,7 +256,7 @@ def regularInput(ev):
 
 
 def escMenuInput(ev):
-    global esc_Menu, opt_Menu, Flag
+    global esc_Menu, opt_Menu, InGame
     if isInRect(pygame.mouse.get_pos(),menu_escape[1][1]):
         for event in ev:
             if event.type == pygame.MOUSEBUTTONUP:
@@ -228,7 +268,8 @@ def escMenuInput(ev):
     elif isInRect(pygame.mouse.get_pos(),menu_escape[2][1]):
         for event in ev:
             if event.type == pygame.MOUSEBUTTONUP:
-                Flag = False
+                InGame = False
+                pygame.mixer.quit()
         if pygame.mouse.get_pressed()[0]:
             menu_escape[2][0] = (120,120,120)
         else:
@@ -292,6 +333,22 @@ def optMenuInput(ev):
                 menu_opt[5][0] = (0,240,0)
             else:
                 menu_opt[5][0] = (240,0,0)
+    elif isInRect(pygame.mouse.get_pos(),menu_opt[8][1]) and pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0]>=menu_opt[6][1][0] and pygame.mouse.get_pos()[0]<=menu_opt[6][1][0]+menu_opt[6][1][2]:
+        menu_opt[8][1][0] = pygame.mouse.get_pos()[0]-opt_width/100
+        volume = (menu_opt[8][1][0]-menu_opt[6][1][0])/menu_opt[6][1][2]
+        if volume >= 0:
+            pygame.mixer.music.set_volume((menu_opt[8][1][0]-menu_opt[6][1][0])/menu_opt[6][1][2])
+        else:
+            pygame.mixer.music.set_volume(0)
+    elif isInRect(pygame.mouse.get_pos(),menu_opt[9][1]) and pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0]>=menu_opt[7][1][0] and pygame.mouse.get_pos()[0]<=menu_opt[7][1][0]+menu_opt[7][1][2]:
+        menu_opt[9][1][0] = pygame.mouse.get_pos()[0]-opt_width/100
+        volume = (menu_opt[9][1][0]-menu_opt[7][1][0])/menu_opt[7][1][2]
+        if volume >= 0:
+            for i in range(3):
+                pygame.mixer.Channel(i).set_volume(volume)
+        else:
+            for i in range(3):
+                pygame.mixer.Channel(i).set_volume(0)
     else:
         menu_opt[1][0] = (140,140,140)
         menu_opt[2][0] = (140,140,140)
@@ -333,7 +390,7 @@ def hitting(tank,bullet):
         else:
             return(False)
     else:
-        if (y <= tank.position[1] + tank.height and y >= tank.position[1]) and (x <= tank.position[0] + tank.width/2 and x >= tank.position[0] - tank.width/2 ):
+        if (y <= tank.position[1] + tank.height and y >= tank.position[1]) and (x <= tank.position[0] + tank.width/2 and x >= tank.position[0] - tank.width/2):
             return(True)
         else:
             return(False)
@@ -383,7 +440,8 @@ def blitMenu(menu):
             screen.blit(button[2],(button[1][0],button[1][1]))
 
 def resize(newsize):
-    global dpu, size, width, height,menu_escape, menu_opt, opt_width, opt_height, HP_img
+    global dpu, size, width, height,menu_escape, menu_opt, opt_width, opt_height, HP_img, Esc_indic
+    pos = menu_opt[8][1][0]/dpu ,menu_opt[9][1][0]/dpu
     ratio = newsize[0]/size[0]
     size = width, height = newsize
     if Fullscreen:
@@ -395,24 +453,23 @@ def resize(newsize):
     terrain.size = terrain.width, terrain.height = size
     terrain.terrain.display(terrain.background, terrain.height, terrain.width)
     for e in entity:
-        e.sprite = [pygame.image.load(os.path.join(path,"img","cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img","Player " + str(e.id) + ".png")).convert_alpha()]
+        e.sprite = [pygame.image.load(os.path.join(path,"img\\cannon 1.png")).convert_alpha(), pygame.image.load(os.path.join(path,"img\\Player " + str(e.id) + ".png")).convert_alpha()]
         e.sprite[0] = pygame.transform.scale(e.sprite[0],(int(e.cannon_width*dpu),int(e.cannon_height*dpu)))
         e.sprite[1] = pygame.transform.scale(e.sprite[1],(int(e.width*dpu),int(e.height*dpu)))
     menu_escape = m_width, m_height = [32*dpu,48*dpu]
     menu_escape=[[(150,150,150),[width/2 - m_width/2,height/2 - m_height/2,m_width,m_height]],
                 [(140,140,140),[width/2 - 3*m_width/8 , height/2 - 3*m_height/8,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Options",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))],
-                [(140,140,140),[width/2 - 3*m_width/8 , height/2 + m_height/24,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Quit",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))]]
-    for w in walls:
-        w.position = x,height
-        w.width, w.height = 2*dpu, height*2/3
+                [(140,140,140),[width/2 - 3*m_width/8 , height/2 + m_height/24,3*m_width/4,m_height/3], pygame.transform.scale(myfont.render("Menu",True,(255,255,255)),(int(m_width*3/4),int(m_height/3)))]]
     menu_opt = opt_width, opt_height = [144*dpu, 72*dpu]
     menu_opt  = option.genMenu(menu_opt,width, height,myfont)
+    menu_opt[8][1][0] ,menu_opt[9][1][0] = pos[0]*dpu, pos[1]*dpu
     HP_img = pygame.transform.scale(myfont.render("HP",True,(255,255,255)),(int(width/32),int(height/32)))
+    Esc_indic = pygame.transform.scale(myfont.render("Press Esc for Menu",True,(255,255,255)),(int(width/4),int(height/16)))
     for p in players:
         p.score_img = pygame.transform.scale(myfont.render("Score : "+str(p.score),True,(255,255,255)),(int(width/8),int(height/32)))
 
 def blitHUD():
-    global score , HP_img
+    global score , HP_img, Esc_indic
     for i in range(nb_players):
         position = ((-1)**i*(1+i*2)%16)*width/16,height/16
         if players[i].tank != 0:
@@ -422,11 +479,17 @@ def blitHUD():
         pygame.draw.rect(screen,(0,0,0),[position[0],position[1],width*3/16,height/32],math.ceil(0.16*dpu))
         screen.blit(players[i].score_img,(position[0],position[1]+height/32))
         screen.blit(HP_img,(position[0]-(width/32),position[1]))
+    ratio = (players[turn].tank.fuel/max_fuel)
+    if ratio >= 0:
+        pygame.draw.rect(screen,(255*(1-ratio),ratio*255,0),[width/2-width*3/32,31*height/32,width*ratio*3/16,height/32])
+    pygame.draw.rect(screen,(0,0,0),[width/2-width*3/32,31*height/32,width*3/16,height/32],math.ceil(0.16*dpu))
+
+    screen.blit(Esc_indic,(0,15*height/16))
 
 ###Fonction fondamentales
 
 def gameplay():
-    global t, dt, bullet, varpower, cannon_height,force
+    global t, dt, bullet, varpower, cannon_height, force, queue, musics
     dt = time.perf_counter() - t
     t = time.perf_counter()
     # print(round(1/dt))
@@ -441,6 +504,10 @@ def gameplay():
         players[turn].tank.cannon_height = cannon_height * coef
         players[turn].tank.force = force * coef
         players[turn].tank.sprite[0] = pygame.transform.scale(players[turn].tank.sprite[0],(int(players[turn].tank.cannon_width*dpu),int(players[turn].tank.cannon_height*dpu)))
+    if not(pygame.mixer.music.get_busy()):
+        queue = (queue + 1) % len(musics)
+        pygame.mixer.music.load(musics[queue])
+        pygame.mixer.music.play()
 
 def event():
     '''Gère les événements'''
@@ -450,8 +517,9 @@ def event():
         for tank in [p.tank for p in players]:
             if bullet != 0 and tank !=0 and (tank.id != turn or bullet.clock >= 0.3) and hitting(tank,bullet):
                 tank.HP -= (1/2) * bullet.m * np.sqrt((bullet.speed[0]**2)+(bullet.speed[1]**2))
-                players[turn].tank.fuel = 10
+                players[turn].tank.fuel = max_fuel
                 turn = (turn + 1) % nb_players
+                pygame.mixer.Channel(2).play(sounds[2])
                 bullet = 0
                 if tank.HP <= 0:
                     players[tank.id].tank = 0
@@ -466,14 +534,14 @@ def event():
             Win = True
     if bullet != 0 and bullet.position[1] <= terrain.terrain.val(0,bullet.position[0]):
         bullet = 0
-        players[turn].tank.fuel = 10
+        players[turn].tank.fuel = max_fuel
         turn = (turn + 1) % nb_players
         while players[turn].tank == 0:
             turn = (turn + 1) % nb_players
     for w in walls:
         if bullet != 0 and bulletHittingWall(w,bullet):
             bullet = 0
-            players[turn].tank.fuel = 10
+            players[turn].tank.fuel = max_fuel
             turn = (turn + 1) % nb_players
             while players[turn].tank == 0:
                 turn = (turn + 1) % nb_players
@@ -501,13 +569,14 @@ def event():
         for p in players:
             if p.score == 3:
                 InGame = False
+                pygame.mixer.quit()
 
 def display():
     screen.blit(terrain.background,(0,0))
     if bullet != 0:
         pygame.draw.circle(screen,(40,40,40),(int(bullet.position[0]*dpu),height-int(bullet.position[1]*dpu)),3)
     for w in walls:
-        pygame.draw.rect(screen,(120,120,120),((w.position[0]*dpu-w.width*dpu/2),height/3,w.width*dpu,w.height*dpu))
+        pygame.draw.rect(screen,(120,120,120),((w.position[0]*dpu-w.width*dpu/2),height/2,w.width*dpu,w.height*dpu))
     for e in entity:
         if e != 0:
             blitCannon(screen, e)
@@ -516,11 +585,16 @@ def display():
         blitMenu(menu_escape)
     elif opt_Menu == True:
         blitMenu(menu_opt)
+        text = pygame.transform.scale(myfont.render("Musics:",True,(255,255,255)),(int(18*dpu),int(6*dpu)))
+        screen.blit(text,(width/2, height/2 - height/4))
+        text = pygame.transform.scale(myfont.render("Sounds:",True,(255,255,255)),(int(18*dpu),int(6*dpu)))
+        screen.blit(text,(width/2, height/2-height/32))
     else:
         blitHUD()
     pygame.display.flip()
 
 def close():
+    pygame.mixer.quit()
     pygame.display.quit()
 
 ###Main
@@ -528,7 +602,8 @@ def close():
 while Flag:
     if InGame == False:
         init()
-    gameplay()
-    event()
-    display()
+    if Flag:
+        gameplay()
+        event()
+        display()
 close()
