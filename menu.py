@@ -12,11 +12,11 @@ def menu(screen, myfont, size, dpu):
     Walls = True
     terrain = (0, 0, 1,"grass")
     path = os.path.abspath("")
-    background = pygame.image.load(os.path.join(path,"img\\menu_background.png")).convert()
+    background = pygame.image.load(os.path.join(path,"img","menu_background.png")).convert()
     background = pygame.transform.scale(background,size)
     pygame.mixer.init()
     pygame.mixer.music.set_volume(0.5)
-    pygame.mixer.music.load(os.path.join(path,"msc\\balistank.mp3"))
+    pygame.mixer.music.load(os.path.join(path,"msc","balistank.mp3"))
     pygame.mixer.music.play(loops=-1)
     while Flag:
         Flag, Quit, menu, Walls, terrain, nb_players = event(Flag, Quit, menu, Walls, terrain, nb_players, myfont,dpu)
