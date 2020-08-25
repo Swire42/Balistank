@@ -13,7 +13,9 @@ Tip: Faster bullets means more damage, hold space to adjust power.
 ## Credits
 
 ### Programming
-Balistank.py, menu.py, options.py by Sylvain Brosseau & Lou Fugier & Benoit Pilat\
+Balistank.py by Sylvain Brosseau\
+menu.py by Sylvain Brosseau\
+options.py by Sylvain Brosseau\
 terrain.py by Victor Miquel (github.com/dido11)
 
 ### "Balistank" song
